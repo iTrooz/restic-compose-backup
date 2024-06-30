@@ -1,14 +1,22 @@
-FROM restic/restic:0.9.6
+FROM rclone/rclone:1 AS rclone
 
-RUN apk update && apk add python3 \ 
-    dcron \
-    mariadb-client \
-    postgresql-client \
-    mariadb-connector-c-dev 
+FROM restic/restic:0.16.4 AS restic
+
+FROM python:3.12-alpine
+
+COPY --from=rclone /usr/local/bin/rclone /usr/local/bin/rclone
+COPY --from=restic /usr/bin/restic /usr/local/bin/restic
+
+RUN apk update \
+    && apk add \
+        dcron \
+        mariadb-client \
+        postgresql-client \
+        mariadb-connector-c-dev
 
 ADD . /restic-compose-backup
 WORKDIR /restic-compose-backup
-RUN pip3 install -U pip setuptools wheel && pip3 install -e .
+RUN pip install -U pip setuptools wheel && pip install .
 ENV XDG_CACHE_HOME=/cache
 
 ENTRYPOINT []

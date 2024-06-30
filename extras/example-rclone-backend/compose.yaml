@@ -1,0 +1,24 @@
+services:
+  backup:
+    build: ../../src
+    env_file:
+      - backup.env
+    labels:
+      restic-compose-backup.volumes: false
+    volumes:
+      # Map in docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Map restic cache
+      - restic_cache:/cache
+  postgres:
+    image: postgres:12
+    env_file:
+      - postgres.env
+    labels:
+      restic-compose-backup.postgres: true
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+  restic_cache:

@@ -11,7 +11,7 @@ setup(
         'restic_compose_backup.*',
     ]),
     install_requires=[
-        'docker~=6.1.3',
+        'docker~=7.1.0',
     ],
     entry_points={'console_scripts': [
         'restic-compose-backup = restic_compose_backup.cli:main',
