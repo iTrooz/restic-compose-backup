@@ -66,7 +66,7 @@ class MariadbContainer(Container):
         destination /= self.service_name
         destination /= "all_databases.sql"
 
-        return destination
+        return str(destination)
 
 
 class MysqlContainer(Container):
@@ -126,7 +126,7 @@ class MysqlContainer(Container):
         destination /= self.service_name
         destination /= "all_databases.sql"
 
-        return destination
+        return str(destination)
 
 
 class PostgresContainer(Container):
@@ -186,4 +186,4 @@ class PostgresContainer(Container):
         destination /= self.service_name
         destination /= f"{self.get_credentials()['database']}.sql"
 
-        return destination
+        return str(destination)
