@@ -42,6 +42,7 @@ def backup_from_stdin(repository: str, filename: str, source_command: List[str])
     ])
 
     logger.debug('restic command: %s', ' '.join(dest_command))
+    logger.debug('pg_dump command: %s', ' '.join(source_command))
 
     # pipe source command into dest command
     source_process = Popen(source_command, stdout=PIPE, bufsize=65536)
