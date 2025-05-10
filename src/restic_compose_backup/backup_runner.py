@@ -1,9 +1,21 @@
 import logging
 import os
+import signal
+import sys
 
 from restic_compose_backup import utils
 
 logger = logging.getLogger(__name__)
+
+should_exit = False
+
+def handle_signal(signum, frame):
+    global should_exit
+    logger.info(f"Received signal {signum}, shutting down gracefully...")
+    should_exit = True
+
+signal.signal(signal.SIGTERM, handle_signal)
+signal.signal(signal.SIGINT, handle_signal)
 
 
 def run(image: str = None, command: str = None, volumes: dict = None,
@@ -28,13 +40,11 @@ def run(image: str = None, command: str = None, volumes: dict = None,
     log_generator = container.logs(stdout=True, stderr=True, stream=True, follow=True)
 
     def readlines(stream):
-        """Read stream line by line"""
-        while True:
+        """Read stream line by line, exit early if signal received"""
+        while not should_exit:
             line = ""
-            while True:
+            while not should_exit:
                 try:
-                    # Make log streaming work for docker ce 17 and 18.
-                    # For some reason strings are returned instead if bytes.
                     data = next(stream)
                     if isinstance(data, bytes):
                         line += data.decode()
@@ -44,6 +54,9 @@ def run(image: str = None, command: str = None, volumes: dict = None,
                         break
                 except StopIteration:
                     break
+                except Exception as e:
+                    logger.error(f"Exception reading log stream: {e}")
+                    break
             if line:
                 yield line.rstrip()
             else:
@@ -51,13 +64,26 @@ def run(image: str = None, command: str = None, volumes: dict = None,
 
     with open('backup.log', 'w') as fd:
         for line in readlines(log_generator):
+            if should_exit:
+                logger.info("Exiting log reading loop due to signal.")
+                break
             fd.write(line)
             fd.write('\n')
             logger.info(line)
 
-    container.wait()
+    if should_exit:
+        try:
+            logger.info("Stopping backup container due to signal...")
+            container.stop(timeout=5)
+        except Exception as e:
+            logger.error(f"Error stopping container: {e}")
+
     container.reload()
     logger.debug("Container ExitCode %s", container.attrs['State']['ExitCode'])
     container.remove()
+
+    if should_exit:
+        logger.info("Exiting due to signal.")
+        sys.exit(143)  # 128 + 15 (SIGTERM)
 
     return container.attrs['State']['ExitCode']

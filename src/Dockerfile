@@ -18,6 +18,6 @@ ADD . /restic-compose-backup
 WORKDIR /restic-compose-backup
 RUN pip install -U pip setuptools wheel && pip install .
 ENV XDG_CACHE_HOME=/cache
-
+RUN mkdir -p /databases
 ENTRYPOINT []
 CMD ["./entrypoint.sh"]
