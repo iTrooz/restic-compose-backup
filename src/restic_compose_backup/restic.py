@@ -20,11 +20,13 @@ def init_repo(repository: str):
 
 
 def backup_files(repository: str, source='/volumes'):
-    return commands.run(restic(repository, [
+    cmd = restic(repository, [
         "--verbose",
         "backup",
         source,
-    ]))
+    ])
+    logger.debug('restic command: %s', ' '.join(cmd))
+    return commands.run(cmd)
 
 
 def backup_from_stdin(repository: str, filename: str, source_command: List[str]):
@@ -38,6 +40,8 @@ def backup_from_stdin(repository: str, filename: str, source_command: List[str])
         '--stdin-filename',
         filename,
     ])
+
+    logger.debug('restic command: %s', ' '.join(dest_command))
 
     # pipe source command into dest command
     source_process = Popen(source_command, stdout=PIPE, bufsize=65536)
