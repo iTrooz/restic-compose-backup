@@ -170,7 +170,7 @@ The git repository contains a simple local setup for development
 # Create an overlay network to link the compose project and stack
 docker network create --driver overlay --attachable global
 # Start the compose project
-docker-compose up -d
+docker compose up -d
 # Deploy the stack
 docker stack deploy -c swarm-stack.yml test
 ```
@@ -178,7 +178,7 @@ docker stack deploy -c swarm-stack.yml test
 In dev we should ideally start the backup container manually
 
 ```bash
-docker-compose run --rm backup sh
+docker compose run --rm backup sh
 # pip install the package in the container in editable mode to auto sync changes from host source
 pip3 install -e .
 ```
